@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TypedDict
 
 from pypdf import PdfReader
+from .office import docx_text, xml_text
 
 
 SECTION_NAMES = ("skills", "experience", "projects", "education", "certifications")
@@ -59,6 +60,14 @@ def _extract(path: Path) -> tuple[str, list[str], bytes]:
         except UnicodeDecodeError:
             raw = data.decode("utf-8-sig", errors="replace")
             warnings.append("text_encoding_replacements")
+    elif path.suffix.lower() in {".docx", ".docxl", ".xml"}:
+        extension = path.suffix.lower()
+        try:
+            raw = xml_text(data) if extension == ".xml" else docx_text(data)
+            if extension == ".docxl":
+                warnings.append("nonstandard_extension:docxl")
+        except Exception:
+            return "", ["xml_unreadable" if extension == ".xml" else "docx_unreadable"], data
     elif path.suffix.lower() == ".pdf":
         import io
         try:
