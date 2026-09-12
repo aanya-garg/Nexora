@@ -1,0 +1,17 @@
+{
+  "Python": ["python", "python3", "python 3"],
+  "JavaScript": ["javascript", "java script", "js"],
+  "TypeScript": ["typescript", "ts"],
+  "Java": ["java"],
+  "C++": ["c++", "cpp"],
+  "C#": ["c#", "c sharp"],
+  "React": ["react", "reactjs", "react.js"],
+  "Node.js": ["node.js", "nodejs", "node js"],
+  "PostgreSQL": ["postgresql", "postgres"],
+  "SQL": ["sql"],
+  "Git": ["git"],
+  "Docker": ["docker"],
+  "AWS": ["aws", "amazon web services"],
+  "scikit-learn": ["scikit-learn", "sklearn", "scikit learn"],
+  "TensorFlow": ["tensorflow", "tensor flow"]
+}

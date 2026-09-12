@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evidencerank-parsing"
+version = "0.1.0"
+description = "Local document parsing for EvidenceRank"
+requires-python = ">=3.10"
+dependencies = ["pypdf>=6.0,<7"]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10"]
+
+[tool.setuptools.packages.find]
+include = ["evidencerank*"]
+
+[tool.setuptools.package-data]
+"evidencerank.parsing" = ["technology_aliases.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

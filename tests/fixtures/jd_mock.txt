@@ -1,0 +1,5 @@
+Mock Software Engineer
+
+  Build   local tools and maintain services.
+Experience with Python and PostgreSQL is welcome.
+This is synthetic test data, not a real vacancy.

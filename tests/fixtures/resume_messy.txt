@@ -1,0 +1,14 @@
+CV
+Arjun Rao
+
+  TECHNICAL   SKILLS : JS, C#, sklearn, PYTHON
+WORK EXPERIENCE:
+• Developed a synthetic API with node js.
+PROJECTS: Demo queue
+Used amazon web services.
+PROJECTS
+Second mock project using TypeScript.
+INTERESTS
+Photography
+EDUCATION:
+

@@ -1,0 +1,11 @@
+Maya Kapoor
+maya@example.test
+TECHNICAL SKILLS: Python3, React.js, C++, postgres
+WORK EXPERIENCE
+Built NodeJS services for a fictional library.
+PROJECTS
+Mock inventory dashboard using reactjs and Docker.
+EDUCATION
+BSc Computer Science, Example University, 2025
+CERTIFICATIONS
+Example Cloud Fundamentals
