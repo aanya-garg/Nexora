@@ -39,7 +39,7 @@ The synthetic demo uses two actual Person A fixture parses and a third in-memory
 
 `match_candidate(candidate, requirements)` returns `{candidate_id, candidate_name, requirements}`. `match_candidates(...)` returns these objects in the original candidate order. Every output requirement retains its input fields and adds:
 
-- `keyword_score`: 0.0 or 1.0. Exact and safe-alias matches are equally credited. Frequency never increases the score.
+- `keyword_score`: 0.0 or 100.0. Exact and safe-alias matches are equally credited. Frequency never increases the score.
 - `match_type`: `EXACT`, `NORMALIZED`, or `NOT_EVIDENCED`. Person C adds semantic matches later.
 - `matched_terms`: deduplicated actual matching strings.
 - `matches`: source, actual term, match type, and zero-based, end-exclusive raw-text offsets. Every raw-text match can be verified with `raw_text[start:end]`.
@@ -51,7 +51,7 @@ EXACT means a case-insensitive literal occurrence of the canonical `skill` field
 
 The parser's `normalized_skills` is a fallback only when raw text is unavailable. Such a result explicitly records `source: normalized_skills`, null offsets, empty evidence and `raw_evidence_unavailable`. Structured mentions never override contradictory raw text.
 
-`keyword_coverage(rows, weights=...)` computes only an optional weighted average of keyword scores on **0–1**. Person C must use the same scale for other components (or convert all components to 0–100). It does not apply the plan's final 40/35/15/10 formula. Weights live in `weights.json`; equal defaults avoid inventing importance. A caller can explicitly supply `{"required": 2, "preferred": 1, "unspecified": 1}`. Invalid/nonfinite/negative weights, all-zero effective weights, and out-of-range scores raise errors. Empty requirements return 0.0; extraction also warns on an empty JD.
+`keyword_coverage(rows, weights=...)` computes only an optional weighted average of keyword scores on **0–100**, matching Person D's score scale. Person C should keep all components and final scores on 0–100; do not multiply these keyword outputs by 100 again. For example, one matched and one unmatched equally weighted requirement returns 50.0. Recompute any cached outputs from the earlier 0–1 version before integration. It does not apply the plan's final 40/35/15/10 formula. Weights live in `weights.json`; equal defaults avoid inventing importance. A caller can explicitly supply `{"required": 2, "preferred": 1, "unspecified": 1}`. These weights are relative multipliers, not scores. Invalid/nonfinite/negative weights, all-zero effective weights, and out-of-range scores raise errors. Empty requirements return 0.0; extraction also warns on an empty JD.
 
 ## Configuration and review limits
 

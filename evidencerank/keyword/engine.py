@@ -142,9 +142,9 @@ def _validate_requirements(requirements):
 
 
 def match_candidate(candidate: dict, requirements: list[dict], *, config_path=None) -> dict:
-    """Return per-requirement literal matches with scores on [0, 1].
+    """Return per-requirement literal matches with scores on [0, 100].
 
-    Exact and alias hits both receive 1.0; absent/negated evidence receives 0.0.
+    Exact and alias hits both receive 100.0; absent/negated evidence receives 0.0.
     Counts do not increase scores. No semantic or final candidate score is returned.
     """
     lookup = _lexicon(config_path)
@@ -189,7 +189,7 @@ def match_candidate(candidate: dict, requirements: list[dict], *, config_path=No
             start = raw.rfind("\n", 0, best["start"]) + 1
             end = raw.find("\n", best["end"])
             evidence = raw[start:end if end >= 0 else len(raw)]
-        results.append({**req, "keyword_score": 1.0 if hits else 0.0,
+        results.append({**req, "keyword_score": 100.0 if hits else 0.0,
                         "match_type": best["match_type"] if best else "NOT_EVIDENCED",
                         "matched_terms": list(dict.fromkeys(h["term"] for h in hits)),
                         "matches": hits, "evidence": evidence,
@@ -206,7 +206,7 @@ def match_candidates(candidates: list[dict], requirements: list[dict], *, config
 
 
 def keyword_coverage(matches: list[dict], *, weights: dict | None = None) -> float:
-    """Optional weighted keyword component only, [0,1]; default equal importance."""
+    """Optional weighted keyword component only, [0,100]; default equal importance."""
     if weights is None:
         weights = json.loads(Path(__file__).with_name("weights.json").read_text())
     if set(weights) != {"required", "preferred", "unspecified"} or any(
@@ -219,8 +219,8 @@ def keyword_coverage(matches: list[dict], *, weights: dict | None = None) -> flo
         if kind not in {None, "required", "preferred"}:
             raise ValueError("Invalid requirement type")
         score = row["keyword_score"]
-        if isinstance(score, bool) or not isinstance(score, (int, float)) or not math.isfinite(score) or not 0 <= score <= 1:
-            raise ValueError("Keyword scores must be finite numbers on [0,1]")
+        if isinstance(score, bool) or not isinstance(score, (int, float)) or not math.isfinite(score) or not 0 <= score <= 100:
+            raise ValueError("Keyword scores must be finite numbers on [0,100]")
         weight = weights[kind or "unspecified"]
         numerator += weight * score
         denominator += weight

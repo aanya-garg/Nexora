@@ -59,7 +59,7 @@ def test_alternatives_are_preserved_for_review():
 def test_exact_and_alias_matches(text, kind):
     row = match_candidate({"raw_text": text}, [requirement("MongoDB")])["requirements"][0]
     assert row["match_type"] == kind
-    assert row["keyword_score"] == 1.0
+    assert row["keyword_score"] == 100.0
     assert not row["not_explicitly_evidenced"]
     assert row["evidence"] in text
     for match in row["matches"]:
@@ -76,7 +76,7 @@ def test_false_positive_boundaries_and_no_semantic_inference():
 
 def test_repetition_does_not_inflate_score():
     row = match_candidate({"raw_text": "ReactJS React React ReactJS"}, [requirement("React")])["requirements"][0]
-    assert row["keyword_score"] == 1
+    assert row["keyword_score"] == 100
     assert row["match_type"] == "EXACT"
 
 
@@ -120,16 +120,27 @@ def test_end_to_end_person_a_objects_and_order():
 
 
 def test_weighted_keyword_component():
-    rows = [{"type": "required", "keyword_score": 1}, {"type": "preferred", "keyword_score": 0}]
-    assert keyword_coverage(rows) == 0.5
-    assert keyword_coverage(rows, weights={"required": 2, "preferred": 1, "unspecified": 1}) == pytest.approx(2 / 3)
+    rows = [{"type": "required", "keyword_score": 100}, {"type": "preferred", "keyword_score": 0}]
+    assert keyword_coverage(rows) == 50
+    assert keyword_coverage(rows, weights={"required": 2, "preferred": 1, "unspecified": 1}) == pytest.approx(200 / 3)
     assert keyword_coverage([]) == 0
 
 
 @pytest.mark.parametrize("weights", [{"required": -1, "preferred": 1, "unspecified": 1}, {"required": float("nan"), "preferred": 1, "unspecified": 1}, {"required": 0, "preferred": 0, "unspecified": 0}, {"required": 1}])
 def test_bad_weights_rejected(weights):
     with pytest.raises(ValueError):
-        keyword_coverage([{"type": "required", "keyword_score": 1}], weights=weights)
+        keyword_coverage([{"type": "required", "keyword_score": 100}], weights=weights)
+
+
+@pytest.mark.parametrize("score", [-1, 101, float("nan"), float("inf"), True])
+def test_invalid_percentage_scores_rejected(score):
+    with pytest.raises(ValueError, match="0,100"):
+        keyword_coverage([{"type": "required", "keyword_score": score}])
+
+
+def test_full_keyword_coverage_is_100():
+    rows = match_candidate({"raw_text": "Mongo DB"}, [requirement("MongoDB")])["requirements"]
+    assert keyword_coverage(rows) == 100.0
 
 
 def test_empty_jd_and_duplicate_ids():
