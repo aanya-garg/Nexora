@@ -38,7 +38,7 @@ class SentenceTransformerEmbedder:
     def __init__(self, model_name: str = MODEL_NAME):
         from sentence_transformers import SentenceTransformer  # local import: optional heavy dep
 
-        self._model = SentenceTransformer(model_name)
+        self._model = SentenceTransformer(model_name, local_files_only=True)
 
     def encode(self, texts: List[str]):
         return self._model.encode(texts, convert_to_numpy=True, normalize_embeddings=True)
@@ -61,6 +61,11 @@ def flatten_resume_chunks(resume: ParsedResume) -> List[Tuple[str, str]]:
         for chunk in section_chunks:
             if chunk and chunk.strip():
                 chunks.append((section_name, chunk.strip()))
+    known = {text for _, text in chunks}
+    for line in resume.get("raw_text", "").splitlines():
+        if line.strip() and line.strip() not in known:
+            chunks.append(("raw_text", line.strip()))
+            known.add(line.strip())
     return chunks
 
 
@@ -74,6 +79,8 @@ def _cosine_similarity_matrix(a, b):
 
     a = np.asarray(a, dtype=float)
     b = np.asarray(b, dtype=float)
+    if a.ndim != 2 or b.ndim != 2 or a.shape[1] != b.shape[1] or not np.isfinite(a).all() or not np.isfinite(b).all():
+        raise ValueError("Embedding vectors must be finite matrices of equal dimension")
     a_norm = a / np.clip(np.linalg.norm(a, axis=1, keepdims=True), 1e-12, None)
     b_norm = b / np.clip(np.linalg.norm(b, axis=1, keepdims=True), 1e-12, None)
     return a_norm @ b_norm.T

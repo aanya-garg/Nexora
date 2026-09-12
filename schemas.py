@@ -29,7 +29,7 @@ class JDRequirement(TypedDict):
     id: str            # stable id, e.g. "REQ001"
     text: str           # atomic requirement sentence, e.g. "3+ years of Python experience"
     skill: str           # canonical skill/keyword extracted from `text`, e.g. "python"
-    type: RequirementType
+    type: Optional[RequirementType]
 
 
 class ParsedJD(TypedDict):
@@ -152,4 +152,5 @@ def compute_final_score(component_scores: dict, weights: dict = DEFAULT_WEIGHTS)
     weights: same keys, values summing to 1.0.
     Returns a single 0-100 float.
     """
-    raise NotImplementedError("Awaiting approval to implement.")
+    from scoring import compute_final_score as implementation
+    return implementation(component_scores, weights)

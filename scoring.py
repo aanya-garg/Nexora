@@ -12,6 +12,7 @@ candidate.
 from __future__ import annotations
 
 from typing import Dict, List
+import math
 
 from schemas import CandidateResult, EvidenceLedgerEntry, ParsedJD, ParsedResume, ScoreBreakdown, SemanticMatchResult
 
@@ -147,6 +148,13 @@ def compute_final_score(component_scores: dict, weights: dict = None) -> float:
     if missing_weights:
         raise ValueError(f"weights missing keys: {sorted(missing_weights)}")
 
+    for key in REQUIRED_COMPONENT_KEYS:
+        value, weight = component_scores[key], weights[key]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise ValueError("Component scores must be finite numbers")
+        if isinstance(weight, bool) or not isinstance(weight, (int, float)) or not math.isfinite(weight) or weight < 0:
+            raise ValueError("Weights must be finite nonnegative numbers")
+
     weight_total = sum(weights[key] for key in REQUIRED_COMPONENT_KEYS)
     if abs(weight_total - 1.0) > 1e-6:
         raise ValueError(f"weights for {sorted(REQUIRED_COMPONENT_KEYS)} must sum to 1.0, got {weight_total}")
@@ -173,5 +181,7 @@ def score_candidate(
         "candidate_name": resume["candidate_name"],
         "final_score": final_score,
         "score_breakdown": score_breakdown,
-        "requirements": ledger,
+        # The internal cosine ledger uses fractions; every public score is 0-100.
+        "requirements": [{**row, "keyword_score": round(row["keyword_score"] * 100, 2),
+                          "semantic_score": round(row["semantic_score"] * 100, 2)} for row in ledger],
     }

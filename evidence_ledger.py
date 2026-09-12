@@ -106,6 +106,8 @@ def _select_evidence(
     based search succeeds. Every candidate value returned here is text that
     was actually extracted from the resume -- nothing is invented.
     """
+    if keyword_result.get("evidence"):
+        return keyword_result["evidence"]
     candidate_terms = list(keyword_result["matched_terms"])
     if keyword_result["normalized_match"]:
         candidate_terms.append(keyword_result["normalized_match"])

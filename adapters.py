@@ -36,6 +36,7 @@ called unchanged.
 from __future__ import annotations
 
 from typing import Dict, List
+import re
 
 from schemas import KeywordMatchResult, ParsedJD, ParsedResume
 
@@ -68,12 +69,20 @@ def adapt_resume(person1_resume: dict) -> ParsedResume:
     """Convert Person 1's parse_resume() output (sections: dict[str, str])
     into schemas.py's ParsedResume shape (sections: dict[str, List[str]]).
     """
+    def original_chunks(text):
+        chunks = []
+        for line in _split_section_into_chunks(text):
+            match = re.search(r"\s+".join(re.escape(word) for word in line.split()), person1_resume["raw_text"])
+            if match:
+                chunks.append(match.group())
+        return chunks
+
     return {
         "candidate_id": person1_resume["candidate_id"],
         "candidate_name": person1_resume["candidate_name"],
         "raw_text": person1_resume["raw_text"],
         "sections": {
-            section: _split_section_into_chunks(text)
+            section: original_chunks(text)
             for section, text in person1_resume["sections"].items()
         },
         "normalized_skills": person1_resume["normalized_skills"],
@@ -108,5 +117,6 @@ def adapt_keyword_results(person2_match_candidates_output: List[dict]) -> List[K
                 "keyword_score": row["keyword_score"] / 100.0,
                 "matched_terms": matched_terms,
                 "normalized_match": normalized_match,
+                "evidence": row.get("evidence", ""),
             })
     return flat

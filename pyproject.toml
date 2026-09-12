@@ -7,10 +7,14 @@ name = "evidencerank-parsing"
 version = "0.1.0"
 description = "Local document parsing for EvidenceRank"
 requires-python = ">=3.10"
-dependencies = ["pypdf>=6.0,<7"]
+dependencies = ["pypdf>=6.0,<7", "numpy>=1.21"]
 
 [project.optional-dependencies]
 test = ["pytest>=8,<10"]
+semantic = ["sentence-transformers>=3,<6"]
+
+[tool.setuptools]
+py-modules = ["pipeline", "adapters", "semantic_matcher", "evidence_ledger", "scoring", "ranking", "schemas", "explanations", "comparison", "jd_quality", "validation", "training_data"]
 
 [tool.setuptools.packages.find]
 include = ["evidencerank*"]
@@ -20,4 +24,4 @@ include = ["evidencerank*"]
 "evidencerank.keyword" = ["weights.json"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "test_person_d.py", "test_training_data.py"]
