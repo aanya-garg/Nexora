@@ -1,5 +1,19 @@
 # Person A: local parsing
 
+Supported inputs: PDF, UTF-8 TXT, Word DOCX, and XML (including WordprocessingML).
+The nonstandard `.docxl` extension is accepted only for a valid DOCX ZIP package,
+with a `nonstandard_extension:docxl` warning. Legacy binary `.doc` is unsupported.
+Both `parse_resume` and `parse_jd` accept these formats without changing their contracts.
+
+Word extraction reads the main document body, including paragraphs and table cells,
+and joins formatting runs without splitting words. Headers, footers, images and OCR
+are not included. XML extracts element text, not attributes, and maps explicit section
+tags such as `<skills>` to section headings. Arbitrary XML schemas may need review.
+DTD/entity declarations are rejected; no external resources are loaded. XML content
+is limited to 20 MiB, including the uncompressed Word document part. Corrupt, encrypted,
+unsafe or oversized inputs return `docx_unreadable` or `xml_unreadable` warnings.
+This support uses only Python's standard library in addition to the existing pypdf dependency.
+
 Install from the repository root with `python -m pip install -e ".[test]"`.
 Run tests with `python -m pytest -q`.
 

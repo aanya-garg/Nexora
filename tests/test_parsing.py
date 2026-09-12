@@ -33,7 +33,7 @@ def test_complete_contract():
     assert set(result["sections"]) == {"skills", "experience", "projects", "education", "certifications"}
     assert result["normalized_skills"] == ["Python", "React", "C++", "PostgreSQL", "Node.js", "Docker"]
     assert result["warnings"] == []
-    assert result["raw_text"] == (FIXTURES / "resume_complete.txt").read_text()
+    assert result["raw_text"] == (FIXTURES / "resume_complete.txt").read_bytes().decode("utf-8-sig")
 
 
 def test_messy_sections():
@@ -105,7 +105,7 @@ def test_bad_pdfs(tmp_path, kind, warning):
 
 def test_missing_unsupported_empty_and_bad_encoding(tmp_path):
     assert "file_unreadable" in parse_resume(tmp_path / "missing.pdf")["warnings"]
-    path = tmp_path / "x.docx"
+    path = tmp_path / "x.bin"
     path.write_bytes(b"x")
     assert parse_jd(path)["warnings"] == ["unsupported_format"]
     path = tmp_path / "empty.txt"
