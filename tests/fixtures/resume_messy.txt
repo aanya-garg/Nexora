@@ -11,4 +11,3 @@ Second mock project using TypeScript.
 INTERESTS
 Photography
 EDUCATION:
-
