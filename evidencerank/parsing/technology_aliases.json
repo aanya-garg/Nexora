@@ -13,5 +13,7 @@
   "Docker": ["docker"],
   "AWS": ["aws", "amazon web services"],
   "scikit-learn": ["scikit-learn", "sklearn", "scikit learn"],
-  "TensorFlow": ["tensorflow", "tensor flow"]
+  "TensorFlow": ["tensorflow", "tensor flow"],
+  "MongoDB": ["mongodb", "mongo db"],
+  "Backend APIs": ["backend apis", "backend api"]
 }

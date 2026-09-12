@@ -1,0 +1,4 @@
+Required skills:
+React, backend APIs, MongoDB, Git.
+Preferred skills:
+Docker

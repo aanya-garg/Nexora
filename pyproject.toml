@@ -17,6 +17,7 @@ include = ["evidencerank*"]
 
 [tool.setuptools.package-data]
 "evidencerank.parsing" = ["technology_aliases.json"]
+"evidencerank.keyword" = ["weights.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
