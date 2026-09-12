@@ -1,6 +1,6 @@
 import copy
 import pytest
-from mock_data import MOCK_CANDIDATES
+from synthetic_test_data import MOCK_CANDIDATES
 from explanations import generate_top3_explanations, build_explanation
 from comparison import compare
 from jd_quality import detect_jd_issues

@@ -1,7 +1,6 @@
 """
-Mock data matching the shared EvidenceRank candidate_result schema.
-Swap this out for Person 3's real output later -- nothing else in this
-package needs to change.
+Synthetic fixtures for unit tests only. The application demo uses the
+host-provided training dataset through training_data.py instead.
 """
 
 MOCK_JD_TEXT = """
