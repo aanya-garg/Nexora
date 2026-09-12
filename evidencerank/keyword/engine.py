@@ -19,8 +19,11 @@ HEADINGS = {
     "must have": "required", "must-have": "required", "essential skills": "required",
     "preferred": "preferred", "preferred qualifications": "preferred", "preferred skills": "preferred",
     "nice to have": "preferred", "nice-to-have": "preferred", "desirable": "preferred",
+    "must-have skills": "required", "must have skills": "required",
+    "good-to-have skills": "preferred", "good to have skills": "preferred",
+    "key responsibilities": None, "soft skills": None,
 }
-IGNORE_HEADINGS = {"about us", "about the company", "benefits", "what we offer", "compensation", "how to apply", "equal opportunity"}
+IGNORE_HEADINGS = {"about us", "about the role", "about the company", "benefits", "what we offer", "compensation", "how to apply", "equal opportunity"}
 NEGATED = re.compile(r"\b(?:no|not|without|never|lack(?:s|ing)?)\b[^.;\n]{0,65}$", re.I)
 
 
@@ -56,6 +59,29 @@ def _literal_skill(fragment):
     return value.strip(" .:;\t")
 
 
+def _outside_parentheses(text):
+    return re.sub(r"\([^)]*\)", "", text)
+
+
+def _split_list(text):
+    # Verb phrases describe a single responsibility; splitting their conjunctions
+    # creates meaningless requirements such as "Develop" or "users".
+    if re.match(r"^(?:develop|design|write|collaborate|debug|maintain|build|work|resolve|participate)\b", text, re.I):
+        return [text]
+    pieces, start, depth = [], 0, 0
+    for match in re.finditer(r"[()]|,\s*|\s+and\s+", text, re.I):
+        token = match.group()
+        if token == "(":
+            depth += 1
+        elif token == ")":
+            depth = max(0, depth - 1)
+        elif depth == 0:
+            pieces.append(text[start:match.start()])
+            start = match.end()
+    pieces.append(text[start:])
+    return pieces
+
+
 def extract_requirements(jd: str | dict, *, config_path=None) -> dict:
     """Return {requirements, warnings}; input is JD text or Person A's JD dict.
 
@@ -69,9 +95,16 @@ def extract_requirements(jd: str | dict, *, config_path=None) -> dict:
     warnings = list(jd.get("warnings", [])) if isinstance(jd, dict) else []
     requirements = []
     context = None
-    ignore = False
+    lines = []
+    for line in clean_text(raw).splitlines():
+        if line and line[0].islower() and lines and len(lines[-1]) > 70 and not lines[-1].endswith((".", ":", ";")):
+            lines[-1] += " " + line
+        else:
+            lines.append(line)
+    # A structured JD's preamble is metadata until its first known heading.
+    ignore = any(line.partition(":")[0].strip().casefold() in HEADINGS | dict.fromkeys(IGNORE_HEADINGS) for line in lines)
     seen = set()
-    for original_line in clean_text(raw).splitlines():
+    for original_line in lines:
         line = re.sub(r"^\s*(?:[-*•]+|\d+[.)])\s*", "", original_line).strip()
         if not line:
             continue
@@ -96,16 +129,17 @@ def extract_requirements(jd: str | dict, *, config_path=None) -> dict:
                 continue
             # Keep OR alternatives and qualifications in one unit for human review.
             alternative = bool(re.search(r"\bor\b", sentence, re.I))
-            fragments = [sentence] if alternative else re.split(r",\s*|\s+and\s+", sentence, flags=re.I)
-            required = bool(REQUIRED.search(sentence))
-            preferred = bool(PREFERRED.search(sentence))
+            fragments = [sentence] if alternative else _split_list(sentence)
+            required = bool(REQUIRED.search(_outside_parentheses(sentence)))
+            preferred = bool(PREFERRED.search(_outside_parentheses(sentence)))
             shared_type = ("required" if required else "preferred") if required != preferred else context
             for fragment in fragments:
-                fragment = fragment.strip(" .;\t")
+                fragment = re.sub(r"^and\s+", "", fragment.strip(" .;\t"), flags=re.I)
                 skill = _literal_skill(fragment)
                 if not skill:
                     continue
-                local_required, local_preferred = bool(REQUIRED.search(fragment)), bool(PREFERRED.search(fragment))
+                priority_text = _outside_parentheses(fragment)
+                local_required, local_preferred = bool(REQUIRED.search(priority_text)), bool(PREFERRED.search(priority_text))
                 req_type = ("required" if local_required else "preferred") if local_required != local_preferred else shared_type
                 if required and preferred and not (local_required != local_preferred):
                     req_type = None

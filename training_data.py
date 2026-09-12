@@ -5,9 +5,14 @@ from pathlib import Path
 import zipfile
 
 
-def prepare_training(archive_path, output_dir):
+def prepare_training(archive_path, output_dir, *, dataset_type="training"):
+    if dataset_type not in {"training", "testing"}:
+        raise ValueError("Dataset type must be training or testing")
     from evidencerank.parsing import parse_resume
     output_dir = Path(output_dir).resolve()
+    existing = output_dir / "parsed_resumes.json"
+    if existing.exists() and json.loads(existing.read_text(encoding="utf-8")).get("dataset_type") != dataset_type:
+        raise ValueError("Cannot overwrite a different dataset split")
     documents = output_dir / "resumes"
     documents.mkdir(parents=True, exist_ok=True)
     candidates = []
@@ -30,22 +35,23 @@ def prepare_training(archive_path, output_dir):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(archive.read(item))
             candidates.append({"source_file": target.relative_to(output_dir).as_posix(), "candidate": parse_resume(target)})
-    bundle = {"dataset_type": "training", "status": "parsed_unranked", "documents": candidates}
+    bundle = {"dataset_type": dataset_type, "status": "parsed_unranked", "documents": candidates}
     (output_dir / "parsed_resumes.json").write_text(json.dumps(bundle, ensure_ascii=False, indent=2), encoding="utf-8")
     return bundle
 
 
-def load_training(path):
+def load_training(path, *, dataset_type="training"):
     bundle = json.loads(Path(path).read_text(encoding="utf-8"))
-    if bundle.get("dataset_type") != "training" or bundle.get("status") != "parsed_unranked" or not isinstance(bundle.get("documents"), list):
-        raise ValueError("Expected a parsed training dataset")
+    if bundle.get("dataset_type") != dataset_type or bundle.get("status") != "parsed_unranked" or not isinstance(bundle.get("documents"), list):
+        raise ValueError(f"Expected a parsed {dataset_type} dataset")
     return bundle
 
 
 if __name__ == "__main__":
     cli = argparse.ArgumentParser()
     cli.add_argument("archive")
-    cli.add_argument("--output", default="data/training")
+    cli.add_argument("--output")
+    cli.add_argument("--split", choices=["training", "testing"], default="training")
     args = cli.parse_args()
-    docs = prepare_training(args.archive, args.output)["documents"]
-    print(f"Prepared {len(docs)} training documents; {sum(bool(d['candidate']['raw_text'].strip()) for d in docs)} contain extracted text. No scores generated.")
+    docs = prepare_training(args.archive, args.output or f"data/{args.split}", dataset_type=args.split)["documents"]
+    print(f"Prepared {len(docs)} {args.split} documents; {sum(bool(d['candidate']['raw_text'].strip()) for d in docs)} contain extracted text. No scores generated.")
