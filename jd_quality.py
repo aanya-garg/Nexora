@@ -17,7 +17,7 @@ BIAS_PATTERNS = [
         "rewrite": 'Use a neutral skill description instead, e.g. "experienced developer" or "skilled engineer."',
     },
     {
-        "pattern": r"\bdigital native\b|\brecent graduate\b|\byoung and energetic\b",
+        "pattern": r"\bdigital\s+native\b|\brecent\s+graduate\b|\byoung\s+and\s+energetic\b",
         "category": "Potential age bias",
         "reason": "This phrasing can read as a preference for younger candidates, which is not a genuine skill requirement.",
         "rewrite": 'Describe the actual skill needed (e.g. "comfortable learning new tools quickly") instead of referencing age or career stage.',
@@ -32,7 +32,7 @@ BIAS_PATTERNS = [
 
 # Checked separately because it needs surrounding context (seniority) and a
 # capture group, rather than a fixed phrase.
-SENIORITY_KEYWORDS = r"intern|junior|entry.level|entry level"
+SENIORITY_KEYWORDS = r"\b(?:intern(?:ship)?|junior|entry[\s-]+level)\b"
 
 
 def _check_seniority_mismatch(jd_text: str) -> list:
@@ -59,7 +59,7 @@ NAMED_TOOLS = ["React", "Node.js", "NodeJS", "MongoDB", "Angular", "Vue", "Docke
 def _check_narrow_tool_requirements(jd_text: str) -> list:
     issues = []
     for tool in NAMED_TOOLS:
-        for m in re.finditer(re.escape(tool), jd_text, re.I):
+        for m in re.finditer(r"(?<![\w+#])" + re.escape(tool) + r"(?![\w+#])", jd_text, re.I):
             window = jd_text[max(0, m.start() - 40): m.end() + 40]
             if not re.search(r"\bor\b|\bequivalent\b|\bsimilar\b", window, re.I):
                 issues.append({

@@ -24,7 +24,7 @@ def build_explanation(candidate: dict) -> str:
     # this is the clearest proof point that semantic matching mattered.
     semantic_highlights = [
         r for r in matched
-        if r["match_type"] == "SEMANTIC" and r["keyword_score"] < 50 and r["semantic_score"] >= 70
+        if r["match_type"] == "SEMANTIC" and r["keyword_score"] < 50 and r["semantic_score"] >= 70 and r.get("evidence")
     ]
 
     missing = [r for r in reqs if r["match_type"] == "NOT_EVIDENCED"]
@@ -32,14 +32,18 @@ def build_explanation(candidate: dict) -> str:
     parts = [f"{candidate['candidate_name']} scored {candidate['final_score']:.1f}/100 overall."]
 
     if strongest:
-        listed = ", ".join(f"{r['text']} ({r['match_type'].lower()})" for r in strongest)
+        listed = "; ".join(
+            f"{r['text']} ({r['match_type'].lower()}) -- "
+            + (f"evidence: \"{r['evidence']}\"" if r.get("evidence") else "supporting evidence unavailable; review needed")
+            for r in strongest
+        )
         parts.append(f"Strongest matches: {listed}.")
 
     if semantic_highlights:
         r = semantic_highlights[0]
         parts.append(
             f"Semantic matching found relevant experience for \"{r['text']}\" even though the "
-            f"exact keyword wasn't present -- evidence: \"{r['evidence']}\"."
+            f"literal matching was weaker -- evidence: \"{r['evidence']}\"."
         )
 
     if missing:

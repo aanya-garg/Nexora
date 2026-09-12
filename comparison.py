@@ -35,7 +35,7 @@ def compare(candidate_x: dict, candidate_y: dict) -> dict:
             requirement_diffs.append({"requirement": rx["text"], "delta": diff})
     requirement_diffs.sort(key=lambda d: -abs(d["delta"]))
 
-    sign = "above" if final_delta >= 0 else "below"
+    sign = "above" if final_delta > 0 else "below"
     component_str = ", ".join(
         f"{'+' if v >= 0 else ''}{v} {k}" for k, v in deltas.items() if abs(v) >= 1
     )
@@ -43,6 +43,10 @@ def compare(candidate_x: dict, candidate_y: dict) -> dict:
         f"{candidate_x['candidate_name']} ranks {sign} {candidate_y['candidate_name']} by "
         f"{abs(final_delta)} points overall ({component_str})."
     )
+    if final_delta == 0:
+        sentence = f"{candidate_x['candidate_name']} and {candidate_y['candidate_name']} are tied on the displayed final score."
+        if component_str:
+            sentence += f" Component differences: {component_str}."
     if requirement_diffs:
         top = ", ".join(f"{d['requirement']} ({'+' if d['delta'] >= 0 else ''}{d['delta']})"
                          for d in requirement_diffs[:3])
